@@ -1,0 +1,155 @@
+# =============================================================================
+# vivosun-t8-fan.yaml
+#
+# ESPHome speed control for a Vivosun AeroZesh T8 8" EC inline duct fan,
+# with no GrowHub controller and no cloud.
+#
+# This is a drop-in package containing only the fan-specific configuration.
+# Supply your own esphome: / esp32: / wifi: / api: / ota: blocks in the device
+# file that includes this one.
+#
+# Hardware required: a low-side open-drain MOSFET module (e.g. XY-MOS) between
+# the ESP GPIO and the fan's control line. See docs/wiring.md before flashing.
+#
+# Version: 1.0.0
+# =============================================================================
+
+substitutions:
+  # Name of the fan entity as it appears in Home Assistant.
+  t8_fan_name: "Exhaust Fan"
+
+  # GPIO driving the MOSFET module's PWM input.
+  # Avoid strapping pins. On an ESP32-C3, GPIO8 and GPIO9 will trap the board
+  # in download mode at power-on if held by an attached module.
+  t8_pwm_pin: GPIO7
+
+output:
+  - platform: ledc
+    id: t8_pwm
+    pin: ${t8_pwm_pin}
+
+    # 12 kHz is stable on this fan. Stay at or below 20 kHz, which is the
+    # switching rating of the common MOSFET driver modules.
+    frequency: 12000 Hz
+
+    # REQUIRED.
+    # The MOSFET output is open-drain and the fan pulls its own control line up
+    # to 12 V, so a floating line means full speed. Without inverting, 0 % duty
+    # would command maximum airflow and the fan would appear unresponsive.
+    inverted: true
+
+    # REQUIRED.
+    # min_power below would otherwise apply to the "off" state as well, leaving
+    # the fan spinning at its 35 % floor whenever it is nominally off.
+    zero_means_zero: true
+
+    # The fan will not spin up below roughly 35 % duty. Compressing the usable
+    # range into 35-100 % means a 1 % command from Home Assistant cold-starts it
+    # instead of doing nothing.
+    min_power: 0.35
+    max_power: 1.0
+
+fan:
+  - platform: speed
+    id: t8_fan
+    output: t8_pwm
+    name: "${t8_fan_name}"
+
+    # An exhaust fan that returns to full speed on its own after a power blip is
+    # worse than one that comes back off.
+    restore_mode: RESTORE_DEFAULT_OFF
+
+    # The fan tracks its control voltage continuously; it has no internal step
+    # quantisation. The ten discrete levels of the stock Vivosun controller are
+    # a firmware choice in that controller, not a limit of the motor.
+    speed_count: 100
+
+    # Percentages below were measured on one fan in a 197 mm duct. Treat them as
+    # a starting point; see docs/calibration.md to characterise your own.
+    preset_modes:
+      - "Off"
+      - "Silent"   #  10 % - bottom of the flat minimum-speed shelf
+      - "Low"      #  31 % - quiet setpoint
+      - "Med"      #  50 %
+      - "High"     #  75 %
+      - "Full"     # 100 %
+
+    on_preset_set:
+      then:
+        # ESPHome has no switch statement in automations, so each preset needs
+        # its own condition block.
+        - if:
+            condition:
+              lambda: 'return x == "Off";'
+            then:
+              - fan.turn_off: t8_fan
+        - if:
+            condition:
+              lambda: 'return x == "Silent";'
+            then:
+              - fan.turn_on:
+                  id: t8_fan
+                  speed: 10
+        - if:
+            condition:
+              lambda: 'return x == "Low";'
+            then:
+              - fan.turn_on:
+                  id: t8_fan
+                  speed: 31
+        - if:
+            condition:
+              lambda: 'return x == "Med";'
+            then:
+              - fan.turn_on:
+                  id: t8_fan
+                  speed: 50
+        - if:
+            condition:
+              lambda: 'return x == "High";'
+            then:
+              - fan.turn_on:
+                  id: t8_fan
+                  speed: 75
+        - if:
+            condition:
+              lambda: 'return x == "Full";'
+            then:
+              - fan.turn_on:
+                  id: t8_fan
+                  speed: 100
+
+# -----------------------------------------------------------------------------
+# Tachometer - DISABLED ON PURPOSE
+#
+# The fan does expose a tach signal on the white wire, and the block below is the
+# furthest this got. It may work for you. It did not work well here: readings
+# were usable near full speed and badly over-reported at low speed, because low
+# speed means more PWM switching edges coupling into the counter. Attempts with
+# pulse_meter, with the ISR counter, with a 3 ms software filter, and with the
+# tach pin relocated away from the PWM pin all traded one failure for another.
+#
+# Treat this as an experiment, not a feature. Uncomment only if you want to try,
+# and expect to spend time on it. Speed control works fine without it.
+#
+# If you do try: add an external 10 k pull-up from the tach pin to 3.3 V (the
+# internal pull-up is too weak for a harness-length run), route the tach wire
+# away from the PWM wire, and recalibrate the multiply filter against a known
+# reference before believing any number it produces.
+# -----------------------------------------------------------------------------
+#
+# sensor:
+#   - platform: pulse_counter
+#     id: t8_fan_rpm
+#     name: "${t8_fan_name} RPM"
+#     pin:
+#       number: GPIO3          # kept physically distant from the PWM pin
+#       mode:
+#         input: true
+#         pullup: true
+#     unit_of_measurement: "RPM"
+#     use_pcnt: true           # hardware counter; the ISR path read zero at random
+#     internal_filter: 13us    # hardware maximum, and NOT enough to reject 12 kHz PWM
+#     update_interval: 2s
+#     filters:
+#       - multiply: 0.375      # calibrate this yourself - see docs/calibration.md

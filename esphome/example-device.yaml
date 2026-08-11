@@ -1,0 +1,30 @@
+# =============================================================================
+# example-device.yaml
+#
+# Minimal example of consuming the fan package. Everything not specific to the
+# T8 is left to you: add your own esphome:, esp32:, wifi:, api: and ota: blocks
+# the way you already do for every other node.
+#
+# Version: 1.0.0
+# =============================================================================
+
+packages:
+  t8_fan: !include vivosun-t8-fan.yaml
+
+substitutions:
+  t8_fan_name: "Annex Exhaust"
+  t8_pwm_pin: GPIO7
+
+# Optional. Exposes the fan's current speed as its own sensor, which is handy
+# for dashboards and for logging a characterisation sweep. Note that the value
+# reflects the last commanded speed, so it does not fall to zero when the fan
+# is switched off - pair it with the fan entity's own state if that matters.
+sensor:
+  - platform: template
+    id: t8_speed_pct
+    name: "${t8_fan_name} Speed %"
+    lambda: return id(t8_fan).speed;
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    icon: mdi:percent
+    update_interval: 10s
