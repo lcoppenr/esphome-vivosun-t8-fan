@@ -179,11 +179,19 @@ C3-specific beyond the strapping-pin warning; any ESP32 or ESP8266 with an LEDC
 ## Credit
 
 Not a fork, but the inspiration and the starting point for understanding these
-fans: [billjuv/EC_Fan_ESPHome](https://github.com/billjuv/EC_Fan_ESPHome) — a
-purpose-built ESP32 board for 4-wire EC fans in the AC Infinity and Vivosun
-families. That project is the better answer if you want a dedicated PCB. This one
-takes the opposite approach: a generic ESP board and an off-the-shelf MOSFET
-module, no custom hardware.
+fans: [billjuv/EC_Fan_ESPHome](https://github.com/billjuv/EC_Fan_ESPHome), a
+purpose-built ESP32 board for 4-wire EC fans.
+
+**It did not work on this fan.** Wired to a T8 it hunted — several attempts, never
+a steady speed. The likely reason, though this was not proven on that board: it
+drives the control line from an open-collector stage through a pull-up resistor,
+which is a relatively high-impedance source feeding an input that integrates
+whatever ripple reaches it. That is the same failure mode a digipot divider
+produced here later, and it is why this project drives the line from a MOSFET
+instead. Results on an AC Infinity fan may well be different.
+
+So the approach here is the opposite one: a generic ESP board and an off-the-shelf
+MOSFET module, low impedance, no custom hardware.
 
 ## License
 
