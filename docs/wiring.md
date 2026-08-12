@@ -18,7 +18,7 @@ The fan's control tail ends in a **USB-C connector that is not USB**. It carries
 12 V and the control signal on a repurposed connector. Break it out with a USB-C
 receptacle pigtail rather than cutting the fan's own cable:
 
-![USB-C receptacle to 4-pin breakout pigtail](images/usb-c-breakout-cable.png)
+![USB-C receptacle to 4-pin breakout pigtail](images/usb-c-breakout-cable.jpg)
 
 | Wire | Function |
 |---|---|

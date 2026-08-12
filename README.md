@@ -55,7 +55,7 @@ conductors.
 The clean way in is a USB-C-receptacle-to-4-pin pigtail, which breaks the four
 conductors out without cutting the fan's cable:
 
-![USB-C receptacle to 4-pin breakout pigtail](docs/images/usb-c-breakout-cable.png)
+![USB-C receptacle to 4-pin breakout pigtail](docs/images/usb-c-breakout-cable.jpg)
 
 The one used here: [Xiwai USB-C female waterproof terminal pigtail](https://www.amazon.com/dp/B0D7CN4BTV).
 
