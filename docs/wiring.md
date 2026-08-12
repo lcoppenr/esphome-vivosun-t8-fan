@@ -4,13 +4,10 @@ Version 1.0.0
 
 ## What you need
 
-| Item | Notes |
-|---|---|
-| Vivosun AeroZesh T8 8" EC inline fan | The fan supplies 12 V to whatever you attach; you do not need a separate PSU |
-| ESP32 board | Any. Developed on an ESP32-C3 |
-| Low-side MOSFET module | Generic "XY-MOS" style, PWM in / open-drain out, rated to at least 20 kHz |
-| USB-C receptacle to 4-pin pigtail | Breaks the fan's four conductors out without cutting its cable. [This one](https://www.amazon.com/dp/B0D7CN4BTV) |
-| 12 V → 5 V step-down for the ESP | The fan hands you 12 V; your ESP wants 5 V or 3.3 V. See "Powering the ESP" in the [README](../README.md) for the options |
+The parts list with links lives in the [README](../README.md#parts). Two points
+from it worth repeating: the fan supplies its own 12 V, so no separate PSU is
+required, and the MOSFET module should be rated to at least 20 kHz because the
+config switches at 12 kHz.
 
 ## The fan's connector
 

@@ -45,6 +45,20 @@ not of PWM.
 Never PWM the fan's 12 V supply rail. EC fans need constant power; speed is the
 separate signal line.
 
+## Parts
+
+| Qty | Item | Notes |
+|---|---|---|
+| 1 | Vivosun AeroZesh T8 8" EC inline duct fan | The GrowHub controller is not needed and is not used |
+| 1 | ESP32 dev board | Any. The reference build used a vdbx FLIP_C3 (ESP32-C3) |
+| 1 | Low-side MOSFET module, "XY-MOS" style — [example](https://www.amazon.com/dp/B0DZP27C2N) | The entire driver. PWM in, open-drain out, screw terminals |
+| 1 | USB-C receptacle to 4-pin pigtail — [example](https://www.amazon.com/dp/B0D7CN4BTV) | Taps the fan's four conductors without cutting its cable |
+| 1 | 12 V → 5 V step-down (MP1584, Mini360, LM2596) | Only if your ESP board has no wide-input regulator — see [Powering the ESP](#powering-the-esp) |
+| — | Hookup wire, heat shrink, a small enclosure | Whatever you already have |
+
+No custom PCB, and depending on your board and module, possibly no soldering —
+the MOSFET module's power and output connections are screw terminals.
+
 ## Tapping into the fan
 
 The fan's control tail ends in a **USB-C connector, which is not USB**. It is a
